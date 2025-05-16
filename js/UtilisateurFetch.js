@@ -1,4 +1,3 @@
-
 const btnCreer = document.getElementById("btn-creer");
 const btnRecup = document.getElementById("btn-recup");
 
@@ -23,16 +22,22 @@ btnCreer.addEventListener("click", () => {
     }
 
     const url = "https://webexamenfinal-2352080.onrender.com/api/utilisateur";
-
     const options = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prenom, nom, courriel, mot_de_passe: mdp })
     };
 
+    btnCreer.disabled = true;
+    btnCreer.textContent = "Création...";
+
     fetch(url, options)
-        .then(res => res.json())
+        .then(res => {
+            console.log("Réponse brute reçue :", res);
+            return res.json();
+        })
         .then(data => {
+            console.log("Réponse JSON :", data);
             if (data.utilisateur) {
                 alert("Utilisateur créé avec succès !");
                 inputPrenom.value = "";
@@ -46,6 +51,10 @@ btnCreer.addEventListener("click", () => {
         .catch(err => {
             console.error("Erreur lors de la création utilisateur :", err);
             alert("Erreur réseau ou serveur.");
+        })
+        .finally(() => {
+            btnCreer.disabled = false;
+            btnCreer.textContent = "Créer";
         });
 });
 
@@ -59,45 +68,30 @@ btnRecup.addEventListener("click", () => {
         return;
     }
 
-    const url = genererNouvelleCle ? "https://webexamenfinal-2352080.onrender.com/api/utilisateur/cle" : "https://webexamenfinal-2352080.onrender.com/api/utilisateur/cle";
-    const method = genererNouvelleCle ? "POST" : "GET";
+    const url = "https://webexamenfinal-2352080.onrender.com/api/utilisateur/cle";
 
-    let fetchOptions;
+    btnRecup.disabled = true;
+    btnRecup.textContent = genererNouvelleCle ? "Génération..." : "Récupération...";
 
-    if (method === "GET") {
-        const params = new URLSearchParams({ courriel, mot_de_passe: mdp });
-        fetchOptions = { method: "GET" };
-        fetch(url + "?" + params.toString(), fetchOptions)
-            .then(res => res.json())
-            .then(data => {
-                if (data.cle_api) {
-                    alert("Votre clé API : " + data.cle_api);
-                } else {
-                    alert("Erreur : " + (data.message || "Impossible de récupérer la clé."));
-                }
-            })
-            .catch(err => {
-                console.error("Erreur récupération clé API :", err);
-                alert("Erreur réseau ou serveur.");
-            });
-    } else {
-        fetchOptions = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ courriel, mot_de_passe: mdp })
-        };
-        fetch(url, fetchOptions)
-            .then(res => res.json())
-            .then(data => {
-                if (data.cle_api) {
-                    alert("Nouvelle clé API générée : " + data.cle_api);
-                } else {
-                    alert("Erreur : " + (data.message || "Impossible de générer la clé."));
-                }
-            })
-            .catch(err => {
-                console.error("Erreur génération clé API :", err);
-                alert("Erreur réseau ou serveur.");
-            });
-    }
+    fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courriel, mot_de_passe: mdp, generer: genererNouvelleCle })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.cle_api) {
+            alert((genererNouvelleCle ? "Nouvelle clé API générée : " : "Clé API existante : ") + data.cle_api);
+        } else {
+            alert("Erreur : " + (data.message || "Erreur inconnue"));
+        }
+    })
+    .catch(err => {
+        console.error("Erreur API :", err);
+        alert("Erreur réseau ou serveur.");
+    })
+    .finally(() => {
+        btnRecup.disabled = false;
+        btnRecup.textContent = "Récuperer";
+    });
 });
