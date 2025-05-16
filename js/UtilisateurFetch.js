@@ -65,7 +65,6 @@ btnRecup.addEventListener("click", () => {
     let fetchOptions;
 
     if (method === "GET") {
-        // Ajout params à l'URL
         const params = new URLSearchParams({ courriel, mot_de_passe: mdp });
         fetchOptions = { method: "GET" };
         fetch(url + "?" + params.toString(), fetchOptions)
